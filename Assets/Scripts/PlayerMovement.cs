@@ -5,47 +5,89 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    public CharacterController controller;
+    public CharacterController characterController;
 
-    Vector3 fallingVelocity;
-
-    [SerializeField]
-    public float playerSpeed = 12f;
-    [SerializeField]
-    public float gravityAcceleration = -9.81f;
-
-    [SerializeField]
-    int jumpHeight;
-
-    public Transform GroundCheck;
-    public float groundDistance;
+    public Transform groundCheck;
     public LayerMask groundMask;
+    private Vector3 velocity;
+    private float groundDistance = 0.5f;
 
-    private bool isGrounded;
+    [SerializeField]
+    public float movementSpeed = 12f;
+    [SerializeField]
+    public float sprintSpeed = 0f;
+    [SerializeField]
+    public float gravity = -18f;
+    [SerializeField]
+    public float jumpHeight =3;
+
+
 
     void Update()
     {
-        isGrounded = Physics.CheckSphere(GroundCheck.position, groundDistance, groundMask);
+        checkIfGrounded();
+        movementSystem();
+    }
 
-        if(isGrounded && fallingVelocity.y < 0)
+
+
+
+
+
+    private bool checkIfGrounded()
+    {
+        if(Physics.CheckSphere(groundCheck.position, groundDistance, groundMask))
         {
-            fallingVelocity.y = -3f;
+            //Debug.Log("Grounded");
+            return true;
         }
+        return false;
+    }
+
+
+    private void movementSystem()
+    {
+        horizontalMovement();
+        verticalMovement();
+    }
+
+    private void horizontalMovement()
+    {
 
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
         Vector3 move = transform.right * x + transform.forward * z;
 
-        controller.Move(move * playerSpeed * Time.deltaTime);
-
-        if(Input.GetButtonDown("Jump") && isGrounded)
+        characterController.Move(move * movementSpeed * Time.deltaTime);
+    /*
+        if(Input.GetKey(KeyCode.LeftShift))
         {
-            fallingVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityAcceleration); 
+            characterController.Move(move * sprintSpeed * Time.deltaTime);
         }
-        
-        fallingVelocity.y += gravityAcceleration * Time.deltaTime;
+    */
+    }
 
-        controller.Move(fallingVelocity * Time.deltaTime);
+    public void verticalMovement()
+    {
+        if(checkIfGrounded() && velocity.y <= -3f)
+        {
+            velocity.y = -3f;
+        }
+
+        if(Input.GetButtonDown("Jump") && checkIfGrounded())
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity); 
+        }
+
+        velocity.y += gravity * Time.deltaTime;
+
+        characterController.Move(velocity * Time.deltaTime);
+    }
+
+
+    private void wallMovement()
+    {
+        
     }
 }
